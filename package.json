@@ -19,5 +19,9 @@
   "bugs": {
     "url": "https://github.com/dyh333/BusPassengerFlowAnalyse/issues"
   },
-  "homepage": "https://github.com/dyh333/BusPassengerFlowAnalyse#readme"
+  "homepage": "https://github.com/dyh333/BusPassengerFlowAnalyse#readme",
+  "devDependencies": {
+    "d3": "^3.5.14",
+    "gulp": "^3.9.0"
+  }
 }
