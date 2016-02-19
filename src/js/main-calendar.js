@@ -8,8 +8,8 @@ require.config({
 
         "jquery": "lib/jquery.min",
         "url": "lib/js-url/url.min",
-        "underscore": "lib/underscore/underscore-min",
-        "lodash": "lib/postal/lodash.min",
+        "moment": "lib/moment/moment.min",
+        "lodash": "lib/lodash/lodash.min",
         "postal": "lib/postal/postal.min",
         "d3": "lib/d3/d3.min",
 
@@ -24,7 +24,7 @@ require.config({
         "postal": ['lodash'],
         "params": {
             exports: 'params'
-        },
+        }
     }
 });
 

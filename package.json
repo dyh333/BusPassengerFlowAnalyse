@@ -11,7 +11,7 @@
     "url": "git+https://github.com/dyh333/BusPassengerFlowAnalyse.git"
   },
   "keywords": [
-    "d3\u001b[D\u001b[D\u001b[C\u001b[C\u001b[Dd\u001b[C\u001b[D3\u001b[D\u001b[\u001b[C\u001b[C\u001b[C",
+    "d3",
     "jquery"
   ],
   "author": "dingyh",
@@ -21,7 +21,11 @@
   },
   "homepage": "https://github.com/dyh333/BusPassengerFlowAnalyse#readme",
   "devDependencies": {
-    "d3": "^3.5.14",
     "gulp": "^3.9.0"
+  },
+  "dependencies": {
+    "d3": "^3.5.14",
+    "lodash": "^4.5.0",
+    "moment": "^2.11.2"
   }
 }
