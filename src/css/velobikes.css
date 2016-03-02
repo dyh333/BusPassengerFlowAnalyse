@@ -539,7 +539,7 @@ a, a:visited {
     display:none;
     position: fixed;
     left: 0;
-    top: 60px;
+    top: 90px;
     z-index: 4000;
     text-align: left;
     width: 100%;
@@ -553,8 +553,24 @@ a, a:visited {
     box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.30);
 }
 
+#calendar-menu {
+    background: #333333 none repeat scroll 0 0;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.3);
+    color: white;
+    display: block;
+    font-size: 12px;
+    height: 30px;
+    left: 0;
+    line-height: 30px;
+    position: fixed;
+    text-align: left;
+    top: 60px;
+    width: 100%;
+    z-index: 4000;
+}
+
 #calendar-content {
-    padding-top: 100px;
+    padding-top: 130px;
 }
 
 #calendar-header-timescale {

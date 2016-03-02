@@ -12,6 +12,7 @@ require.config({
         "lodash": "lib/lodash/lodash.min",
         "postal": "lib/postal/postal.min",
         "d3": "lib/d3/d3.min",
+        "kalendae": "lib/kalendae/kalendae.standalone",
 
         "params": "params",
         "calenderMode": "app/calenderMode"
@@ -28,7 +29,7 @@ require.config({
     }
 });
 
-require(['calenderMode'], function (calenderMode) {
+require(['calenderMode', 'kalendae'], function (calenderMode, kalendae) {
     //$('#loader-progress-content').removeClass('fullwidth');
     //$('#loader-welcome').click(function() {
     //
@@ -42,7 +43,21 @@ require(['calenderMode'], function (calenderMode) {
     //    return false;
     //});
 
-    calenderMode.initCalenderMode();
+    new Kalendae.Input('input_startEndDate', {
+        months:2,
+        mode:'range',
+        format: 'YYYY/MM/DD'
+    });
+
+    //calenderMode.initCalenderMode();
+
+    $("#btn_query").click(function(){
+        var date = $("#input_startEndDate").val();
+        var startDate = _.split(date, '-')[0].trim().replace(/[\/]/g, '');
+        var endDate = _.split(date, '-')[1].trim().replace(/[\/]/g, '');
+
+        calenderMode.startQuery(startDate, endDate);
+    });
 
     $("#mode-calendar").click(function () {
         calenderMode.changeMode('calendar');

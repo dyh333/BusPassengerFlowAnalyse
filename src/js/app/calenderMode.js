@@ -2,6 +2,8 @@
  * Created by dingyh on 2015/09/01.
  */
 define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function (config, $, moment, _, params, d3) {
+        var dateFormatDay = d3.time.format("%Y%m%d");
+
         var activitySvg,
             activityGraphYAxis,
             activityGraphYAxisWeather,
@@ -10,21 +12,20 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
             activityTimeScale,
             calendarContentArea;
 
-        //TODO: 用两个参数传进来起止时间
         var startDateStr = "20160115", endDateStr = "20160127", startTimeSeg = 6, endTimeSeg = 22, onOff = "on";
+        var startDate, endDate, allDays, actualDays, tickWidth, areaWidth, leftOffset;
 
-        var dateFormat = d3.time.format("%Y%m%d%H"),
-            dateFormatDay = d3.time.format("%Y%m%d"),
-            startDate = dateFormatDay.parse(startDateStr),
-            endDate = dateFormatDay.parse(endDateStr),
-
-            allDays = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 )),  //计算的是天数*24小时
-            actualDays = allDays / 24 * 17; //实际上是： 天数 * 17小时 06-22
-        tickWidth = Math.floor((window.innerWidth - 40) / actualDays),
-            areaWidth = tickWidth * actualDays;
-        tickWidth = tickWidth < 3 ? 3 : tickWidth;
-
-        var leftOffset = (window.innerWidth - areaWidth) / 2; //the space left/right
+        //var
+        //    startDate = dateFormatDay.parse(startDateStr),
+        //    endDate = dateFormatDay.parse(endDateStr),
+        //
+        //    allDays = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 )),  //计算的是天数*24小时
+        //    actualDays = allDays / 24 * 17; //实际上是： 天数 * 17小时 06-22
+        //tickWidth = Math.floor((window.innerWidth - 40) / actualDays),
+        //    areaWidth = tickWidth * actualDays;
+        //tickWidth = tickWidth < 3 ? 3 : tickWidth;
+        //
+        //var leftOffset = (window.innerWidth - areaWidth) / 2; //the space left/right
 
         //var currentDate = startDate, //date of player
         //    isPlaying = false;
@@ -154,6 +155,8 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
         }
 
         function initCalenderMode() {
+
+
             activitySvg = d3.select("#calendar-content").append("svg").attr("width", $(window).width()),
                 activityGraphYAxis = activitySvg.append("g"),
                 activityGraphYAxisWeather = activitySvg.append("g"),
@@ -161,12 +164,7 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
                 activityTimeScale = activitySvg.append("g").attr("transform", "translate(" + leftOffset + ",260)"),
                 activityGraphArea = activitySvg.append("g").attr("transform", "translate(" + leftOffset + ",0)");
 
-            loadWeather();
 
-            //先加载数据，再绘制时间轴，是不是会快点？
-            loadRouteTimeSegCount();
-
-            buildCalenderHead();
         }
 
         /**
@@ -238,11 +236,11 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
                         });
                     }
 
-                    for (i = 0, length = data.length; i < length; i++) {
-                        var routeName = data[i].route;
-                        var date = data[i].aDay;
-                        var timeSeg = data[i].seg;
-                        var count = data[i].count;
+                    _.map(data, function (d) {
+                        var routeName = d.route;
+                        var date = d.aDay;
+                        var timeSeg = d.seg;
+                        var count = d.count;
 
                         /*****  处理routes数据  *****/
                         if (!(_.some(routes, ['name', routeName]))) {
@@ -264,7 +262,7 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
                         /*****  处理timeSegs数据  *****/
                         var index = dateToIndex(dateFormatDay.parse(date), timeSeg);
                         timeSegs[index].count += count;
-                    }
+                    });
 
                     routesOrdered = _.orderBy(routes, ['totalCount'], ['desc']);
                     maxSegCount = _.maxBy(timeSegs, 'count').count;
@@ -467,9 +465,38 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
             d3.select("#" + mode + "-page").style({display: 'block'});
         }
 
+        function startQuery(_startDateStr, _endDateStr) {
+            startDateStr = _startDateStr;
+            endDateStr = _endDateStr;
+
+            startDate = dateFormatDay.parse(startDateStr);
+            endDate = dateFormatDay.parse(endDateStr);
+
+            allDays = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 ));  //计算的是天数*24小时
+            actualDays = allDays / 24 * 17; //实际上是： 天数 * 17小时 06-22
+
+            tickWidth = Math.floor((window.innerWidth - 40) / actualDays);
+            areaWidth = tickWidth * actualDays;
+            tickWidth = tickWidth < 3 ? 3 : tickWidth;
+
+            leftOffset = (window.innerWidth - areaWidth) / 2; //the space left/right
+
+
+            initCalenderMode();
+
+
+            loadWeather();
+
+            //先加载数据，再绘制时间轴，是不是会快点？
+            loadRouteTimeSegCount();
+
+            buildCalenderHead();
+        }
+
         return {
-            initCalenderMode: initCalenderMode,
-            changeMode: changeMode
+            //initCalenderMode: initCalenderMode,
+            changeMode: changeMode,
+            startQuery: startQuery
         }
     }
 )

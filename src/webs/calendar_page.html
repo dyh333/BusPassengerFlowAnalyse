@@ -4,8 +4,13 @@
     <meta charset="UTF-8">
     <title></title>
 
-    <link rel="stylesheet" href="../css/velobikes.css"/>
+    <!-- kalendae -->
+    <link rel="stylesheet" href="../js/lib/kalendae/kalendae.css"/>
+    <!-- checkRadio -->
+    <link rel="stylesheet" href="../css/RadioStyle.css"/>
 
+
+    <link rel="stylesheet" href="../css/velobikes.css"/>
     <style>
         #loader-progress-content {
             width:100%;
@@ -34,6 +39,7 @@
             100%{ width:100%;}
         }
     </style>
+
 </head>
 <body>
 <div id="header">
@@ -45,7 +51,7 @@
 	<div id="center-menu">建议使用Chrome浏览器打开（或IE，不建议使用360浏览器）</div>
     <div id="menu">
         <div id="mode-calendar" class="menu-item-selected">图表</div>
-        <div id="mode-explanation" class="menu-item">说明</div>
+        <div id="mode-explanation" class="menu-item">关于</div>
     </div>
 
 </div>
@@ -63,7 +69,30 @@
 <!--</div>-->
 
 <div id="content">
+
     <div id="calendar-page" class="page-scrolling">
+        <div id="calendar-menu">
+            <!--<div class="row">-->
+                <!--<div class="col-sm-3">-->
+                    <!--起止日期:-->
+                    <!--<input type="text" style="width: 200px;" value="2/16/2012" id="input_startEndDate" />-->
+                <!--</div>-->
+                <!--<div class="col-sm-9">-->
+                    <!--<label class="radio-inline"><input type="radio" name="optradio">Option 1</label>-->
+                    <!--<label class="radio-inline"><input type="radio" name="optradio">Option 2</label>-->
+                <!--</div>-->
+            <!--</div>-->
+
+            起止日期:
+            <input id="input_startEndDate" type="text" style="width: 200px;" value="2016/01/15 - 2016/01/27" />
+
+            <input id="radio1" class="css-checkbox" type="radio" name="radiog_lite">
+            <label class="css-label radGroup1" for="radio1">按数量</label>
+            <input id="radio2" class="css-checkbox" type="radio" checked="checked" name="radiog_lite">
+            <label class="css-label radGroup1" for="radio2">按同比</label>
+
+            <button id="btn_query">查询</button>
+        </div>
         <div id="calendar-header">
         </div>
         <div id="calendar-content">
