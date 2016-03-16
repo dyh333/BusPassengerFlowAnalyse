@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "d3": "^3.5.14",
+    "leaflet": "^0.7.7",
     "lodash": "^4.5.0",
     "moment": "^2.11.2"
   }

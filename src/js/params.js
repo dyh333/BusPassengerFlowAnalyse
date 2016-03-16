@@ -25,6 +25,7 @@ var params = {
     ],
     colors: {
         base: "#00eeec",
+        negative: "#FF0000",
         selected: "#FFFFFF",
         route: "#FFFFFF",
         months: [

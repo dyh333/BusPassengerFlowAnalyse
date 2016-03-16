@@ -6,11 +6,13 @@
 
     <!-- kalendae -->
     <link rel="stylesheet" href="../js/lib/kalendae/kalendae.css"/>
+    <!-- leaflet -->
+    <link rel="stylesheet" href="../js/lib/leaflet/leaflet.css"/>
     <!-- checkRadio -->
     <link rel="stylesheet" href="../css/RadioStyle.css"/>
 
-
     <link rel="stylesheet" href="../css/velobikes.css"/>
+
     <style>
         #loader-progress-content {
             width:100%;
@@ -50,7 +52,8 @@
 
 	<div id="center-menu">建议使用Chrome浏览器打开（或IE，不建议使用360浏览器）</div>
     <div id="menu">
-        <div id="mode-calendar" class="menu-item-selected">图表</div>
+        <div id="mode-map" class="menu-item-selected">地图</div>
+        <div id="mode-calendar" class="menu-item">图表</div>
         <div id="mode-explanation" class="menu-item">关于</div>
     </div>
 
@@ -69,30 +72,62 @@
 <!--</div>-->
 
 <div id="content">
+    <div id="div_menu">
+        起止日期:  <!--2016/01/15 - 2016/01/26-->
 
-    <div id="calendar-page" class="page-scrolling">
-        <div id="calendar-menu">
-            <!--<div class="row">-->
-                <!--<div class="col-sm-3">-->
-                    <!--起止日期:-->
-                    <!--<input type="text" style="width: 200px;" value="2/16/2012" id="input_startEndDate" />-->
-                <!--</div>-->
-                <!--<div class="col-sm-9">-->
-                    <!--<label class="radio-inline"><input type="radio" name="optradio">Option 1</label>-->
-                    <!--<label class="radio-inline"><input type="radio" name="optradio">Option 2</label>-->
-                <!--</div>-->
-            <!--</div>-->
+        <input id="input_startEndDate" type="text" style="width: 200px;" value="2016/02/27 - 2016/03/08" />
+        <input id="radio1" class="css-checkbox" type="radio" checked="checked" name="radiog_lite" value="byNum">
+        <label class="css-label radGroup1" for="radio1">按数量</label>
+        <input id="radio2" class="css-checkbox" type="radio" name="radiog_lite" value="byDiff">
+        <label class="css-label radGroup1" for="radio2">按差量</label>
 
-            起止日期:
-            <input id="input_startEndDate" type="text" style="width: 200px;" value="2016/01/15 - 2016/01/27" />
+        <input id="radio3" class="css-checkbox" type="radio" checked="checked" name="radiog_lite2" value="byRoute">
+        <label class="css-label radGroup1" for="radio3">按线路</label>
+        <input id="radio4" class="css-checkbox" type="radio" name="radiog_lite2" value="byStation">
+        <label class="css-label radGroup1" for="radio4">按站点</label>
 
-            <input id="radio1" class="css-checkbox" type="radio" name="radiog_lite">
-            <label class="css-label radGroup1" for="radio1">按数量</label>
-            <input id="radio2" class="css-checkbox" type="radio" checked="checked" name="radiog_lite">
-            <label class="css-label radGroup1" for="radio2">按同比</label>
+        <button id="btn_query">查询</button>
+    </div>
 
-            <button id="btn_query">查询</button>
+    <div id="map-page" style="display: block; padding-top: 90px;">
+        <div id="map" style="height: 100%;"></div>
+
+        <div id="station-panel" class="panel">
+            <div id="station-panel-title">
+                <div id="station-panel-close" class="closeBtn"></div>
+                <div id="station-title"></div>
+            </div>
+            <div id="station-panel-scores">
+                <div id="station-total-score">
+                    <div id="station-total-score-value">
+                        4659
+                    </div>
+                    <div id="station-total-score-description">
+                        客流量
+                    </div>
+                </div>
+                <div id="station-total-perday">
+                    <div id="station-total-perday-value">
+
+                    </div>
+                    <div id="station-total-perday-description">
+                        每小时
+                    </div>
+                </div>
+                <div id="station-total-percent">
+                    <div id="station-total-percent-value">
+                        4659
+                    </div>
+                    <div id="station-total-percent-description">
+                        全部, %
+                    </div>
+                </div>
+            </div>
+            <div id="station-panel-content"></div>
         </div>
+    </div>
+    <div id="calendar-page" class="page-scrolling" style="display: none;">
+
         <div id="calendar-header">
         </div>
         <div id="calendar-content">
