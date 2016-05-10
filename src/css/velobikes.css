@@ -486,11 +486,11 @@ a, a:visited {
 
 
 .stopped {
-    background: url('../images/play.svg') center center no-repeat;
+    background: url('../imgs/play.svg') center center no-repeat;
 }
 
 .playing {
-    background: url('../images/stop.svg') center center no-repeat;
+    background: url('../imgs/stop.svg') center center no-repeat;
 }
 
 #heatmap-time-scale {
@@ -559,11 +559,12 @@ a, a:visited {
     color: white;
     display: block;
     font-size: 12px;
-    height: 30px;
+    height: 40px;
     left: 0;
-    line-height: 30px;
+    line-height: 40px;
     position: fixed;
     text-align: left;
+    vertical-align: middle;
     top: 60px;
     width: 100%;
     z-index: 4000;
@@ -843,10 +844,6 @@ a, a:visited {
         z-index: 6000;
         background: red;
         display: block;
-    }
-
-    #station-panel-content {
-        display: none;
     }
 
     #station-panel-content {

@@ -10,22 +10,22 @@ var params = {
         { num: 0, cn: "周日", en: "Sun" }
     ],
     months: [
-        { days: 31, short: { cn: "1", en: "Jan"}, long: { ru: "Января", en: "Jan"} },
-        { days: 28, short: { cn: "2", en: "Feb"}, long: { ru: "Февраля", en: "February"} },
-        { days: 31, short: { cn: "3", en: "Mar"}, long: { ru: "Марта", en: "March"} },
-        { days: 30, short: { cn: "4", en: "Apr"}, long: { ru: "Апреля", en: "April"} },
-        { days: 31, short: { cn: "5", en: "May"}, long: { ru: "Мая", en: "May"} },
-        { days: 30, short: { cn: "6", en: "Jun"}, long: { ru: "Июня", en: "June"} },
-        { days: 31, short: { cn: "7", en: "Jul"}, long: { ru: "Июля", en: "July"} },
-        { days: 31, short: { cn: "8", en: "Aug"}, long: { ru: "Августа", en: "August"} },
-        { days: 30, short: { cn: "9", en: "Sep"}, long: { ru: "Сентября", en: "September"} },
-        { days: 31, short: { cn: "10", en: "Oct"}, long: { ru: "Октября", en: "October"} },
-        { days: 30, short: { cn: "11", en: "Nov"}, long: { ru: "Ноября", en: "November"} },
-        { days: 31, short: { cn: "12", en: "Dec"}, long: { ru: "Декабря", en: "December"} }
+        { days: 31, short: { cn: "1", en: "Jan"}, long: { cn: "一月", en: "Jan"} },
+        { days: 28, short: { cn: "2", en: "Feb"}, long: { cn: "二月", en: "February"} },
+        { days: 31, short: { cn: "3", en: "Mar"}, long: { cn: "三月", en: "March"} },
+        { days: 30, short: { cn: "4", en: "Apr"}, long: { cn: "四月", en: "April"} },
+        { days: 31, short: { cn: "5", en: "May"}, long: { cn: "五月", en: "May"} },
+        { days: 30, short: { cn: "6", en: "Jun"}, long: { cn: "六月", en: "June"} },
+        { days: 31, short: { cn: "7", en: "Jul"}, long: { cn: "七月", en: "July"} },
+        { days: 31, short: { cn: "8", en: "Aug"}, long: { cn: "八月", en: "August"} },
+        { days: 30, short: { cn: "9", en: "Sep"}, long: { cn: "九月", en: "September"} },
+        { days: 31, short: { cn: "10", en: "Oct"}, long: { cn: "十月", en: "October"} },
+        { days: 30, short: { cn: "11", en: "Nov"}, long: { cn: "十一月", en: "November"} },
+        { days: 31, short: { cn: "12", en: "Dec"}, long: { cn: "十二月", en: "December"} }
     ],
     colors: {
         base: "#00eeec",
-        negative: "#FF0000",
+        negative: "#FFFF00",
         selected: "#FFFFFF",
         route: "#FFFFFF",
         months: [

@@ -3,6 +3,10 @@
  */
 define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'leaflet'], function (config, $, moment, _, params, leaflet) {
     var map;
+    var stationsOrdered, maxStationCount;
+    var markers = {};
+    var maxRadius = 100;
+
 
     function loadBaseMap(){
         $("#map-page").height($(window).height() - $("#header").height() - $("#div_menu").height());
@@ -16,7 +20,47 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'leaflet'], fun
         }).addTo(map);
     }
 
+    function drawStationCircle(index){
+        stationsOrdered.forEach(function (d) {
+            var marker = markers[d.name];
+
+            var seg = d.segs[index];
+            var radius = maxRadius * (Math.abs(seg) / maxStationCount);
+            marker.setRadius(radius);
+
+            if(seg < 0){
+                marker.setStyle({fillColor: params.colors.negative});
+            } else {
+                marker.setStyle({fillColor: params.colors.base});
+            }
+
+        });
+    }
+
+    function initDrawStations(_stationsOrdered, _maxStationCount){
+        stationsOrdered = _stationsOrdered;
+        maxStationCount = _maxStationCount;
+        markers = {};
+
+        var options = {
+            radius: 0,
+            fillColor: params.colors.base,
+            color: "#000",
+            weight: 1,
+            opacity: 1,
+            fillOpacity: 0.5
+        };
+
+        stationsOrdered.forEach(function (d) {
+            var latlng = L.latLng(d.lat, d.lng);
+            markers[d.name]  = L.circleMarker(latlng, options).addTo(map);
+
+        });
+    }
+
     return {
-        loadBaseMap: loadBaseMap
+        loadBaseMap: loadBaseMap,
+        drawStationCircle: drawStationCircle,
+        initDrawStations: initDrawStations
     }
 });

@@ -1,7 +1,8 @@
 /**
  * Created by dingyh on 2015/09/01.
  */
-define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function (config, $, moment, _, params, d3) {
+define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3', 'mapMode'],
+    function (config, $, moment, _, params, d3, mapMode) {
         var dateFormatDay = d3.time.format("%Y%m%d");
 
         var activitySvg,
@@ -13,26 +14,17 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
             calendarContentArea;
 
         var startDateStr = "20160115", endDateStr = "20160127", startTimeSeg = 6, endTimeSeg = 22,
-            onOff = "on", order = "first", calMode = "byNum", routeMode = "byRoute", stationCount = 30;
+            onOff = "on", order = "first", calMode = "byNum", routeMode = "byRoute"; //stationCount = 30;
         var startDate, endDate, allDays, actualDays, tickWidth, areaWidth, leftOffset;
 
-        //var
-        //    startDate = dateFormatDay.parse(startDateStr),
-        //    endDate = dateFormatDay.parse(endDateStr),
-        //
-        //    allDays = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 )),  //计算的是天数*24小时
-        //    actualDays = allDays / 24 * 17; //实际上是： 天数 * 17小时 06-22
-        //tickWidth = Math.floor((window.innerWidth - 40) / actualDays),
-        //    areaWidth = tickWidth * actualDays;
-        //tickWidth = tickWidth < 3 ? 3 : tickWidth;
-        //
-        //var leftOffset = (window.innerWidth - areaWidth) / 2; //the space left/right
+        //heatmap player params
+        var heatmapInfo, heatmapInfoDate, heatmapInfoWeather, heatmapInfoTime, heatmapInfoScore;
+        var timeScaleArea, playHeatmapButton, svgArea, svgAreaBg, svgAreaAxis, svgPointer;
+        var currentDate, //date of player
+            isPlaying = false,
+            timerID,
+            heatmapSpeed = 1000, hourStep = 1;
 
-        //var currentDate = startDate, //date of player
-        //    isPlaying = false;
-        //var timerID;
-        //var heatmapSpeed = 250,
-        //    hourStep = 1;
         var
         //activities = [], activitiesTotals = [], activitiesTotalsDaily = [],
             routes = [], routesOrdered = [], routeTimeSegs = [],
@@ -123,16 +115,6 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
             tooltipThird.text(t.third ? t.third : '');
         }
 
-        function pixelsToDate(px, areaWidth) {
-            //calculate milliseconds
-            var ms = Math.floor((endDate.getTime() - startDate.getTime()) * px / areaWidth);
-            return (new Date(startDate.getTime() + ms));
-        }
-
-        function dateToPixels(dt, areaWidth) {
-            return ((dt - startDate) / (endDate - startDate) * areaWidth);
-        }
-
         function dateToIndex(date, hour) {
             return Math.floor((date - startDate) / (1000 * 60 * 60 * 24 )) * (endTimeSeg - startTimeSeg + 1) + (hour - startTimeSeg);
         }
@@ -159,6 +141,143 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
                 var d = date.getDay();
             d = d < 1 ? 6 : d - 1;
             return (date.getDate() + " " + params.months[date.getMonth()].long["en"] + " " + params.days[d]["en"]);
+        }
+
+        function humanDateCH(date, short) {
+            if (short)
+                return (params.months[date.getMonth()].short["cn"] + "-" + date.getDate());
+            else
+                var d = date.getDay();
+            d = d < 1 ? 6 : d - 1;
+            return (params.months[date.getMonth()].short["cn"] + "月" + date.getDate() + "日 " + params.days[d]["cn"]);
+        }
+
+        function initMapMode(){
+            d3.select("#heatmap-time-scale").style({width: (window.innerWidth - 40).toString() + "px"});
+
+            heatmapInfo = d3.select("#heatmap-info");
+            heatmapInfoDate = d3.select("#heatmap-info-date");
+            heatmapInfoWeather = d3.select("#heatmap-info-weather");
+            heatmapInfoTime = d3.select("#heatmap-info-time");
+            heatmapInfoScore = d3.select("#heatmap-info-score");
+
+            timeScaleArea = d3.select("#heatmap-time-scale-graph").style({ width: window.innerWidth + "px"});
+            playHeatmapButton = d3.select("#heatmap-play-control");
+            svgArea = timeScaleArea.append("svg")
+                .attr("class", "#heatmap-time-control-svg")
+                .attr("width", areaWidth)
+                .attr("height", 80);
+
+            svgAreaBg = svgArea.append("g");
+            svgAreaAxis = svgArea.append("g").attr("transform", "translate(0,60)");
+            svgPointer = svgArea.append("rect")
+                .attr("height", 80).attr("width", 1)
+                .style("fill", "#ff0000")
+                .attr("x", 0)
+                .attr("y", 0);
+        }
+
+        /**
+         * 绘制地图时间轴内的内容
+         */
+        function buildSvgArea(){
+            //绘制地图模块时间轴中的折线
+            //weatherDaily.push({
+            //    temp: temp,
+            //    x: Math.floor(h) * (tickWidth),
+            //    //y: 250 - (temp) / 25.0 * 250
+            //    y: 250 - (temp - lowTemp) / (highTemp - lowTemp) * 250
+            //});
+            var activitiesTotals = [];
+            for (var h = 0; h < actualDays; h++) {
+                activitiesTotals.push({
+                    x: Math.floor(h) * (tickWidth),
+                    y: 58 - (routeTimeSegs[h].count - minRouteSegCount) / (maxRouteSegCount - minRouteSegCount) * 58
+                    //58 - routeTimeSegs[h].count / 2
+                });
+            }
+
+            svgAreaBg.append("path")
+                .attr("d", timeScalePath(activitiesTotals))
+                .attr("stroke", "#dddddd")
+                .attr("stroke-width", 0.8)
+                .attr("fill", "none");
+
+            svgArea
+                .on("mousemove", function (z) {
+                    var selectIndex = Math.floor((d3.mouse(this)[0]) / tickWidth);
+                    var date = indexToDate(selectIndex);
+
+                    getTooltip(event.pageX, event.pageY, {
+                        first: humanDate(date)
+                    });
+                    svgPointer.attr("x", d3.mouse(this)[0]);
+                })
+                .on("mouseout", function (d, i) {
+                    tooltip.style("visibility", "hidden");
+                    svgPointer.attr("x", dateToPixels(currentDate, areaWidth));
+                    d3.select(this).attr("stroke-width", 0);
+                })
+                .on("click", function (z) {
+                    //calculate date for pixel coordinates
+                    svgPointer.attr("x", d3.mouse(this)[0]);
+
+                    var selectIndex = Math.floor((d3.mouse(this)[0]) / tickWidth);
+                    var currentDate = indexToDate(selectIndex);
+
+                    //currentDate = pixelsToDate(d3.mouse(this)[0], d3.select(this).attr("width"));
+                    heatMapActivity(selectIndex);
+                });
+
+
+            index = 0;
+            mapMode.initDrawStations(stationsOrdered, maxStationCount);
+
+            playHeatmapButton.on('click', function () {
+                if (!isPlaying)  timerID = setInterval(function () {
+                    heatTimer();
+                    playHeatmapButton.attr("class", "playing");
+                    isPlaying = true;
+                }, heatmapSpeed);
+                else {
+                    playHeatmapButton.attr("class", "stopped");
+                    isPlaying = false;
+                    clearInterval(timerID);
+                }
+            });
+        }
+
+        /**
+         * 地图模块时间轴动态变化
+         */
+        function heatTimer() {
+
+
+            //currentDate = new Date(currentDate.getTime() + 1000 * 60 * 60 * hourStep);
+            //svgPointer.attr("x", dateToPixels(currentDate, areaWidth)); //moving the pointer
+            //if (currentDate.getTime() > endDate.getTime())
+            //    currentDate = startDate;
+
+            svgPointer.attr("x", index * (tickWidth)); //moving the pointer
+
+            heatMapActivity(index); //dateFormat(currentDate)
+
+            index += 1;
+        }
+
+        /**
+         * 地图渲染动态变化
+         */
+        function heatMapActivity(index) {
+            d3.select(".control-selected").attr("class", "control");
+
+            heatmapInfo.style({visibility: "visible"});
+            heatmapInfoScore.text(routeTimeSegs[index].count);
+            heatmapInfoDate.text(humanDateCH(indexToDate(index)));
+            heatmapInfoWeather.text(weather[index].temp + "°C, " + weather[index].state);
+            heatmapInfoTime.text(indexToDate(index).getHours() + ":00");
+
+            mapMode.drawStationCircle(index);
         }
 
         function initCalenderMode() {
@@ -208,6 +327,9 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
 
             //创建第二个时间轴
             buildTimeScale(activityTimeScale, tickWidth);
+
+            //创建地图模块的时间轴
+            buildTimeScale(svgAreaAxis, tickWidth);
         }
 
         /**
@@ -284,7 +406,7 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
                     highTemp += 3;
                 },
                 error: function (XMLHttpRequest, textStatus, errorThrown) {
-                    cosole.log('load text note error');
+                    console.log('load text note error');
                 }
             });
         }
@@ -331,14 +453,14 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
 
                         var index = dateToIndex(dateFormatDay.parse(date), timeSeg);
                         _.last(routes).segs[index] = count;
-                        _.last(routes).totalCount += count;
+                        _.last(routes).totalCount += Math.abs(count);
 
                         if (maxRouteCount < Math.abs(count)) {
-                            maxRouteCount = parseFloat(count);
+                            maxRouteCount = parseFloat(Math.abs(count));
                         }
 
                         /*****  处理timeSegs数据  *****/
-                        var index = dateToIndex(dateFormatDay.parse(date), timeSeg);
+                        //var index = dateToIndex(dateFormatDay.parse(date), timeSeg);
                         routeTimeSegs[index].count += count;
                     });
 
@@ -364,7 +486,7 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
 
                 },
                 error: function (XMLHttpRequest, textStatus, errorThrown) {
-                    cosole.log('load text note error');
+                    console.log('load text note error');
                 }
             });
         }
@@ -398,22 +520,26 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
                         var date = d.aDay;
                         var timeSeg = d.seg;
                         var count = d.count;
+                        var lat = d.lat;
+                        var lng = d.lon;
 
                         /*****  处理stations数据  *****/
                         if (!(_.some(stations, ['name', stationName]))) {
                             stations.push({
                                 name: stationName,
                                 segs: Array.apply(null, Array(actualDays)).map(Number.prototype.valueOf, 0),
-                                totalCount: 0
+                                totalCount: 0,
+                                lat: lat,
+                                lng: lng
                             });
                         }
 
                         var index = dateToIndex(dateFormatDay.parse(date), timeSeg);
                         _.last(stations).segs[index] = count;
-                        _.last(stations).totalCount += count;
+                        _.last(stations).totalCount += Math.abs(count);
 
                         if (maxStationCount < Math.abs(count)) {
-                            maxStationCount = parseFloat(count);
+                            maxStationCount = parseFloat(Math.abs(count));
                         }
                     });
 
@@ -425,13 +551,13 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
                         buildHeatGridByStation2();
                     }
 
+                    buildSvgArea();
                 },
                 error: function (XMLHttpRequest, textStatus, errorThrown) {
-                    cosole.log('load text note error');
+                    console.log('load text note error');
                 }
             });
         }
-
 
         /**
          * 创建上部的图形区
@@ -463,7 +589,7 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
                 .domain([0, maxRouteSegCount]);
             var yAxis = d3.svg.axis()
                 .scale(yScale)
-                .orient("right");
+                .orient("left");
 
             activityGraphYAxis
                 .attr("class", "y axis")
@@ -472,7 +598,7 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
 
             //右侧y轴
             var yScaleWeather = d3.scale.linear().range([250, 0]).domain([lowTemp, highTemp]),//-10, 15
-                yAxisWeather = d3.svg.axis().scale(yScaleWeather).orient("left");
+                yAxisWeather = d3.svg.axis().scale(yScaleWeather).orient("right");
 
             activityGraphYAxisWeather
                 .attr("class", "y axis-weather")
@@ -497,7 +623,14 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
             //气温 + 降雨
             var weatherDaily = [];
             for (var h = 0; h < actualDays; h++) {
-                var temp = weather[h].temp;
+                //todo
+                var temp;
+                if(weather[h] == undefined){
+                    temp = 0;
+                } else {
+                    temp = weather[h].temp;
+                }
+                //var temp = weather[h].temp;
 
                 weatherDaily.push({
                     temp: temp,
@@ -505,7 +638,7 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
                     //y: 250 - (temp) / 25.0 * 250
                     y: 250 - (temp - lowTemp) / (highTemp - lowTemp) * 250
                 });
-                if (weather[h].state.indexOf("雨") >= 0) {
+                if (weather[h] != undefined && weather[h].state.indexOf("雨") >= 0) {
 
                     activityGraphArea.append("circle")
                         .style("fill", "#459FEB")
@@ -513,7 +646,7 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
                         .attr("cx", Math.floor(h) * (tickWidth))
                         .attr("cy", 250)
                         .attr("r", tickWidth / 2 - 0.5);
-                } else if (weather[h].state.indexOf("雪") >= 0) {
+                } else if (weather[h] != undefined && weather[h].state.indexOf("雪") >= 0) {
 
                     activityGraphArea.append("circle")
                         .style("fill", "#ffffff")
@@ -559,7 +692,7 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
         function buildHeatGridByRoute() {
             activitySvg.attr("height", routesOrdered.length * 16 + 320);
             calendarContentArea = activitySvg.append("g").attr("transform", "translate(0,285)");
-            calendarContentArea.attr("width", window.innerWidth).attr("height", 16 * stationCount + 60);
+            calendarContentArea.attr("width", window.innerWidth).attr("height", 16 * routesOrdered.length + 60);
 
             i = 0;
             routesOrdered.forEach(function (d) {
@@ -639,7 +772,7 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
                 .domain([Math.floor(minRouteSegCount), Math.ceil(maxRouteSegCount)]);
             var yAxis = d3.svg.axis()
                 .scale(yScale)
-                .orient("right");
+                .orient("left");
 
             activityGraphYAxis
                 .attr("class", "y axis")
@@ -648,7 +781,7 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
 
             //右侧y轴
             var yScaleWeather = d3.scale.linear().range([250, 0]).domain([lowTemp, highTemp]),//-10, 35
-                yAxisWeather = d3.svg.axis().scale(yScaleWeather).orient("left");
+                yAxisWeather = d3.svg.axis().scale(yScaleWeather).orient("right");
 
             activityGraphYAxisWeather
                 .attr("class", "y axis-weather")
@@ -686,14 +819,20 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
             //气温 + 降雨
             var weatherDaily = [];
             for (var h = 0; h < actualDays; h++) {
-                var temp = weather[h].temp; //todo
+                //todo
+                var temp;
+                if(weather[h] == undefined){
+                    temp = 0;
+                } else {
+                    temp = weather[h].temp;
+                }
 
                 weatherDaily.push({
                     x: Math.floor(h) * (tickWidth),
                     //y: 250 - (temp + 10) / 25 * 250
                     y: 250 - (temp - lowTemp) / (highTemp - lowTemp) * 250
                 });
-                if (weather[h].state.indexOf("雨") >= 0) {
+                if (weather[h] != undefined && weather[h].state.indexOf("雨") >= 0) {
 
                     activityGraphArea.append("circle")
                         .style("fill", "#459FEB")
@@ -701,7 +840,7 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
                         .attr("cx", Math.floor(h) * (tickWidth))
                         .attr("cy", 250)
                         .attr("r", tickWidth / 2 - 0.5);
-                } else if (weather[h].state.indexOf("雪") >= 0) {
+                } else if (weather[h] != undefined && weather[h].state.indexOf("雪") >= 0) {
 
                     activityGraphArea.append("circle")
                         .style("fill", "#ffffff")
@@ -747,7 +886,7 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
         function buildHeatGridByRoute2() {
             activitySvg.attr("height", routesOrdered.length * 16 + 320);
             calendarContentArea = activitySvg.append("g").attr("transform", "translate(0,285)");
-            calendarContentArea.attr("width", window.innerWidth).attr("height", 16 * stationCount + 60);
+            calendarContentArea.attr("width", window.innerWidth).attr("height", 16 * routesOrdered.length + 60);
 
             i = 0;
             routesOrdered.forEach(function (d) {
@@ -808,9 +947,9 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
         }
 
         function buildHeatGridByStation(){
-            activitySvg.attr("height", stationCount * 16 + 320);
+            activitySvg.attr("height", stationsOrdered.length * 16 + 320);
             calendarContentArea = activitySvg.append("g").attr("transform", "translate(0,285)");
-            calendarContentArea.attr("width", window.innerWidth).attr("height", 16 * stationCount + 60);
+            calendarContentArea.attr("width", window.innerWidth).attr("height", 16 * stationsOrdered.length + 60);
 
             i = 0;
             stationsOrdered.forEach(function (d) {
@@ -865,9 +1004,9 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
         }
 
         function buildHeatGridByStation2() {
-            activitySvg.attr("height", stationCount * 16 + 320);
+            activitySvg.attr("height", stationsOrdered.length * 16 + 320);
             calendarContentArea = activitySvg.append("g").attr("transform", "translate(0,285)");
-            calendarContentArea.attr("width", window.innerWidth).attr("height", 16 * stationCount + 60);
+            calendarContentArea.attr("width", window.innerWidth).attr("height", 16 * stationsOrdered.length + 60);
 
             i = 0;
             stationsOrdered.forEach(function (d) {
@@ -946,9 +1085,10 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
 
             startDate = dateFormatDay.parse(startDateStr);
             endDate = dateFormatDay.parse(endDateStr);
+            currentDate = startDate;
 
             allDays = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 )) + 24;  //计算的是天数*24小时
-            actualDays = allDays / 24 * 17; //实际上是： 天数 * 17小时 06-22
+            actualDays = allDays / 24 * (endTimeSeg - startTimeSeg + 1); //实际上是： 天数 * 17小时 06-22
 
             tickWidth = Math.floor((window.innerWidth - 40) / actualDays);
             areaWidth = tickWidth * actualDays;
@@ -957,15 +1097,20 @@ define(['serviceConfig', 'jquery', 'moment', 'lodash', 'params', 'd3'], function
 
             leftOffset = (window.innerWidth - areaWidth) / 2; //the space left/right
 
+
+
             initCalenderMode();
+            initMapMode();
 
             loadWeather();
 
             //先加载数据，再绘制时间轴
             loadRouteTimeSegCount();
 
+
             if(routeMode === "byStation"){
                 loadStationTimeSegCount();
+
             }
 
             buildCalenderHead();

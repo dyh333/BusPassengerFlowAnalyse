@@ -73,11 +73,12 @@
 
 <div id="content">
     <div id="div_menu">
-        起止日期:  <!--2016/01/15 - 2016/01/26-->
+        &nbsp;&nbsp;&nbsp;&nbsp;起止日期:  <!--2016/01/15 - 2016/01/26-->
 
-        <input id="input_startEndDate" type="text" style="width: 200px;" value="2016/02/27 - 2016/03/08" />
+        <input id="input_startEndDate" type="text" style="width: 160px;" value="2016/01/15 - 2016/01/26" />
+        &nbsp;&nbsp;&nbsp;&nbsp;
         <input id="radio1" class="css-checkbox" type="radio" checked="checked" name="radiog_lite" value="byNum">
-        <label class="css-label radGroup1" for="radio1">按数量</label>
+        <label class="css-label radGroup1" for="radio1" >按数量</label>
         <input id="radio2" class="css-checkbox" type="radio" name="radiog_lite" value="byDiff">
         <label class="css-label radGroup1" for="radio2">按差量</label>
 
@@ -86,11 +87,27 @@
         <input id="radio4" class="css-checkbox" type="radio" name="radiog_lite2" value="byStation">
         <label class="css-label radGroup1" for="radio4">按站点</label>
 
+        &nbsp;&nbsp;&nbsp;&nbsp;
         <button id="btn_query">查询</button>
     </div>
 
     <div id="map-page" style="display: block; padding-top: 90px;">
         <div id="map" style="height: 100%;"></div>
+
+        <div id="heatmap-info" class="panel">
+            <div id="heatmap-info-date"></div>
+            <div id="heatmap-info-weather"></div>
+            <div id="heatmap-info-time"></div>
+            <div id="heatmap-info-score"></div>
+            <div id="heatmap-info-score-description"></div>
+        </div>
+
+        <div id="heatmap-time-control-wrapper">
+            <div id="heatmap-time-scale" class="panel">
+                <div id="heatmap-time-scale-graph"></div>
+                <div id="heatmap-play-control" class="stopped"></div>
+            </div>
+        </div>
 
         <div id="station-panel" class="panel">
             <div id="station-panel-title">
